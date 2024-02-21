@@ -1,0 +1,120 @@
+# Cleaning the environment
+rm(list=ls())
+
+# install.packages("tidyverse") # Use this command if tidyverse is not loaded in R.
+library(tidyverse)
+library(stringr) 
+
+
+# Loading the survey responses
+survey = read.csv("Desktop/UofTears Code/STA304/STA304.csv", header = TRUE, sep = ",")
+
+# Checking colnames (you'll see it is a DISASTER!)
+colnames(survey)
+
+# The following sections shows you a snippet of cleaning responses. Note that if you have designed
+# a close-form survey, you would not need to go through the following tedious process.
+# These solutions may not be the most efficient, but they work. There are a variety of ways to clean data.
+myfunc <- function(x) {
+  for (i in  1:length(x)) {
+    result <- ""
+    result <- str_sub(result, end = -4)
+    if (grepl("I am not experiencing financial stress", x[i])) {
+      result = paste("NE,",result)
+    }
+    if (grepl("Tuition/Education Expenses", x[i])) {
+      result = paste("TE,",result)
+    }
+    if (grepl("Rent", x[i])) {
+      result = paste("RE,",result)
+    }
+    if (grepl("Food", x[i])) {
+      result = paste("FD,",result)
+    }
+    if (grepl("Transportation", x[i])) {
+      result = paste("TP,",result)
+    }
+    if (grepl("Medical Expenses", x[i])) {
+      result = paste("ME,",result)
+    }
+    if (grepl("Sustainability/Stability of Income Sources", x[i])) {
+      result = paste("SS,",result)
+    }
+    x[i] <- str_sub(result, end = -3)
+  }
+  return(x)
+}
+myfunc2 <- function(x) {
+  for (i in  1:length(x)) {
+    result <- ""
+    result <- str_sub(result, end = -4)
+    if (grepl("Family Support", x[i])) {
+      result = paste("FS,",result)
+    }
+    if (grepl("Part-Time/Full-Time Job", x[i])) {
+      result = paste("PFJ,",result)
+    }
+    if (grepl("Scholarships", x[i])) {
+      result = paste("S,",result)
+    }
+    if (grepl("Loans/Lines of Credit (e.g. OSAP, bank loans, etc.)", x[i])) {
+      result = paste("L,",result)
+    }
+    if (grepl("Savings/Investments", x[i])) {
+      result = paste("SI,",result)
+    }
+    x[i] <- str_sub(result, end = -3)
+  }
+  return(x)
+}
+survey = survey %>% 
+  mutate(gender = case_when(gender == "Female" ~ "F", 
+                            gender == "Male" ~ "M"))
+
+survey = survey %>% 
+  mutate(nationality = case_when(nationality == "Domestic Student" ~ "D", 
+                                 nationality == "International Student" ~ "I"))
+
+survey = survey %>% 
+  mutate(program_type = case_when(program_type == "Deregulated, and Full-Time Student" ~ "DF", 
+                                  program_type == "Deregulated, and Part-Time Student" ~ "DP",
+                                  program_type == "Regulated, and Full-Time Student" ~ "RF",
+                                  program_type == "Regulated, and Part-Time Student" ~ "RP",
+                                  ))
+survey = survey %>% 
+  mutate(cgpa = case_when(cgpa == "less than 2.0" ~ 1, 
+                          cgpa == "2.0 - 2.49" ~ 2,
+                          cgpa == "2.5 - 2.99" ~ 3,
+                          cgpa == "3.0 - 3.49" ~ 4,
+                          cgpa == "3.5 - 4.0" ~ 5
+  ))
+survey = survey %>% 
+  mutate(source_of_financial_stress =  myfunc(source_of_financial_stress))
+survey = survey %>% 
+  mutate(source_of_income =  myfunc2(source_of_income))
+survey = survey %>% 
+  mutate(financial_stress = case_when(financial_stress == "No" ~ "N", 
+                                      financial_stress == "Yes" ~ "Y"))
+
+survey = survey %>% 
+  mutate(house_expenditure = case_when(house_expenditure == "0 - 499" ~ 1, 
+                                       house_expenditure == "500 - 999" ~ 2,
+                                       house_expenditure == "1000 -1499" ~ 3,
+                                       house_expenditure == "1500 - 1999" ~ 4,
+                                       house_expenditure == "2000 - 2499" ~ 5,
+                                       house_expenditure == "2500 - 2999" ~ 6,
+                                       house_expenditure == "3000 or higher" ~ 7
+  ))
+
+survey = survey %>% 
+  mutate(other_expenditure = case_when(other_expenditure == "less than 1000" ~ 1, 
+                                       other_expenditure == "1000 - 1999" ~ 2,
+                                       other_expenditure == "2000 - 2999" ~ 3,
+                                       other_expenditure == "3000 - 3999" ~ 4,
+                                       other_expenditure == "4000 or higher" ~ 5,
+  ))
+
+write.csv(survey, "Desktop/UofTears Code/STA304/STA304_Clean.csv", row.names=FALSE)
+
+
+
